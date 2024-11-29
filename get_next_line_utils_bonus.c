@@ -3,89 +3,122 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils_bonus.c                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benpicar <benpicar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benpicar <benpicar@student.42mulhouse.fr>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/24 17:44:38 by benpicar          #+#    #+#             */
-/*   Updated: 2024/10/28 12:12:52 by benpicar         ###   ########.fr       */
+/*   Created: 2024/11/27 13:44:12 by benpicar          #+#    #+#             */
+/*   Updated: 2024/11/28 19:21:23 by benpicar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line_bonus.h"
 
-char	*gnl_strcpycat(char *dest, char *src, char *src2)
+t_vector	*ft_new_vector(void)
+{
+	t_vector	*new;
+
+	new = (t_vector *)malloc(sizeof(t_vector));
+	if (!new)
+		return ((t_vector *) NULL);
+	new->buf = (char *)malloc(sizeof(char) * 2);
+	if (!(new->buf))
+		return (free(new), (t_vector *) NULL);
+	new->index = 0;
+	new->max_len = 2;
+	new->buf[0] = 0;
+	new->buf[1] = 0;
+	return (new);
+}
+
+t_vector	*ft_add_char_vector(char *s, t_vector *vector, size_t len)
+{
+	char	*dbl;
+
+	if (vector->index + len <= vector->max_len)
+	{
+		ft_memcpy(&vector->buf[vector->index], s, len);
+		vector->index = vector->index + len;
+	}
+	else
+	{
+		dbl = (char *)malloc(sizeof(char) * ((vector->max_len * 2) + len));
+		if (!(dbl))
+			return ((t_vector *) NULL);
+		ft_memcpy(dbl, vector->buf, vector->max_len);
+		vector->max_len = (vector->max_len * 2) + len;
+		free(vector->buf);
+		vector->buf = dbl;
+		ft_memcpy(&vector->buf[vector->index], s, len);
+		vector->index = vector->index + len;
+	}
+	return (vector);
+}
+
+void	ft_free_all(t_buffer **start, t_buffer *tmp, t_buffer *tmp2, \
+t_buffer *tmp3)
+{
+	bool		check;
+
+	check = false;
+	tmp3 = *start;
+	if (tmp3 == tmp)
+		check = true;
+	else
+		while (tmp3->next != tmp)
+			tmp3 = tmp3->next;
+	if (tmp != NULL)
+	{
+		tmp2 = tmp->next;
+		free(tmp->vec->buf);
+		free(tmp->vec);
+		free(tmp);
+	}
+	tmp = *start;
+	if (check)
+		*start = tmp2;
+	else
+	{
+		tmp3->next = tmp2;
+	}
+}
+
+void	*ft_memcpy(void *dest, const void *src, size_t n)
 {
 	size_t	i;
-	size_t	j;
 
 	i = 0;
-	j = 0;
-	while (src[i] != '\0')
+	if (dest != NULL && src != NULL)
 	{
-		dest[i] = src[i];
-		i++;
+		while (n >= sizeof(long long))
+		{
+			((long long *)dest)[i] = ((long long *)src)[i];
+			i++;
+			n = n - sizeof(long long);
+		}
+		i = i * sizeof(long long);
+		while (n > 0)
+		{
+			((unsigned char *)dest)[i] = ((unsigned char *)src)[i];
+			n--;
+			i++;
+		}
 	}
-	while (src2[j] != '\0')
-	{
-		dest[i] = src2[j];
-		i++;
-		j++;
-	}
-	dest[i] = 0;
 	return (dest);
 }
 
-char	*gnl_read(int fd, ssize_t *l)
+ssize_t	ft_memchar(const void *s, int c, size_t n)
 {
-	char	*p;
-	ssize_t	n;
+	size_t				i;
+	const unsigned char	*ptr = (const unsigned char *)s;
 
-	p = ((char *)malloc(sizeof(char) * (BUFFER_SIZE + 1)));
-	if (! p)
-		return (NULL);
-	n = read(fd, p, BUFFER_SIZE);
-	*l = n;
-	if (n < 0)
-	{
-		free(p);
-		return (NULL);
-	}
-	p[n] = 0;
-	return (p);
-}
-
-size_t	gnl_strlen(char *str)
-{
-	size_t	i;
-
-	if (! str)
-		return (0);
 	i = 0;
-	while (str[i])
-		i++;
-	return (i);
-}
-
-ssize_t	gnl_strchar(char *str, int c)
-{
-	ssize_t	i;
-
-	if (! str)
-		return (-1);
-	i = 0;
-	while (str[i])
+	if (s != NULL)
 	{
-		if (str[i] == (unsigned char)c)
-			return (i);
-		i++;
+		while (i < n)
+		{
+			if (ptr[i] == (unsigned char)c)
+				return (i);
+			i++;
+		}
 	}
-	if (c == 0)
-		return (i);
 	return (-1);
-}
-
-char	*gnl_free_buffer(char *buffer)
-{
-	if (buffer)
-		free(buffer);
-	return (NULL);
 }
